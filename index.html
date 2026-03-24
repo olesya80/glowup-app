@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Glow Up — Фитнес-квест</title>
+<!-- Telegram Web App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #FBF8F4;
+  --bg2: #F5F0E8;
+  --card: #FFFFFF;
+  --accent: #B8D4A3;
+  --accent2: #D4E4C8;
+  --accent-dark: #8FB87A;
+  --warm: #E8D5C4;
+  --warm2: #F0E0D0;
+  --text: #4A4540;
+  --text2: #8A857E;
+  --text3: #B5B0A8;
+  --rose: #E8C4C4;
+  --lavender: #D4C4E8;
+  --gold: #E8D8A4;
+  --shadow: 0 2px 16px rgba(74,69,64,0.06);
+  --shadow2: 0 4px 24px rgba(74,69,64,0.1);
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes levelUp {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes confetti {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-80px) rotate(360deg); }
+}
+
+.fade-in { animation: fadeIn 0.4s ease-out; }
+.pop-in { animation: popIn 0.3s ease-out; }
+
+/* Screens */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 16px 100px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 18px;
+  animation: fadeIn 0.5s ease-out;
+}
+.header-date {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.header-greeting {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.header-sub {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+/* Level Card */
+.level-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  animation: fadeIn 0.5s ease-out 0.1s both;
+}
+.level-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.level-emoji {
+  font-size: 36px;
+  animation: gentleBounce 2s ease-in-out infinite;
+}
+.level-info { text-align: right; }
+.level-label {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.level-xp {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+.level-xp span {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text2);
+}
+.progress-bar {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.progress-text {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+}
+
+/* Streak */
+.streak-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  animation: fadeIn 0.5s ease-out 0.15s both;
+}
+.streak-card {
+  flex: 1;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.streak-num {
+  font-size: 22px;
+  font-weight: 700;
+}
+.streak-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* Action Buttons */
+.actions-title {
+  font-size: 12px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  animation: fadeIn 0.5s ease-out 0.2s both;
+}
+.action-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out both;
+}
+.action-btn:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow2);
+}
+.action-btn.done {
+  background: var(--accent2);
+  border: 2px solid var(--accent);
+}
+.action-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.action-icon.strength { background: var(--warm2); }
+.action-icon.move { background: var(--accent2); }
+.action-icon.mini { background: var(--lavender); }
+.action-icon.water { background: #C4DEE8; }
+.action-icon.joy { background: var(--gold); }
+.action-text { flex: 1; text-align: left; }
+.action-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.action-xp {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 1px;
+}
+.action-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+.action-btn.done .action-check {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: white;
+}
+
+/* XP Float */
+.xp-float {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  pointer-events: none;
+  animation: floatUp 1s ease-out forwards;
+  z-index: 1000;
+  text-shadow: 0 2px 8px rgba(143,184,122,0.3);
+}
+
+/* Motivation Toast */
+.toast {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border-radius: 16px;
+  padding: 12px 24px;
+  box-shadow: var(--shadow2);
+  font-size: 14px;
+  color: var(--text);
+  text-align: center;
+  animation: popIn 0.3s ease-out;
+  z-index: 999;
+  max-width: 90%;
+  white-space: nowrap;
+}
+.toast.hiding {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Journal */
+.journal-section {
+  margin-top: 14px;
+  animation: fadeIn 0.5s ease-out 0.3s both;
+}
+.journal-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+}
+.journal-label {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.journal-input {
+  width: 100%;
+  border: none;
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  resize: none;
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+.journal-input:focus { box-shadow: 0 0 0 2px var(--accent); }
+.journal-input::placeholder { color: var(--text3); }
+
+/* Workout Screen */
+.workout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.workout-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+.btn-add {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+.btn-add:active { transform: scale(0.92); }
+
+.workout-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+.workout-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.workout-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.workout-progress-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--accent2);
+  color: var(--accent-dark);
+  font-weight: 500;
+}
+.workout-detail {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.workout-detail span { display: flex; align-items: center; gap: 4px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(74,69,64,0.3);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal {
+  background: var(--bg);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 430px;
+  animation: slideUp 0.3s ease-out;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.modal-field { margin-bottom: 14px; }
+.modal-field label {
+  font-size: 12px;
+  color: var(--text2);
+  display: block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal-field input {
+  width: 100%;
+  border: none;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  box-shadow: var(--shadow);
+}
+.modal-field input:focus { box-shadow: 0 0 0 2px var(--accent); }
+.modal-row { display: flex; gap: 10px; }
+.modal-row .modal-field { flex: 1; }
+.btn-save {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform 0.2s;
+  box-shadow: var(--shadow);
+}
+.btn-save:active { transform: scale(0.97); }
+.btn-cancel {
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text2);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* Profile */
+.profile-name-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  margin-bottom: 14px;
+}
+.profile-avatar {
+  font-size: 56px;
+  margin-bottom: 8px;
+  animation: gentleBounce 2s ease-in-out infinite;
+  display: inline-block;
+}
+.profile-name-input {
+  border: none;
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  outline: none;
+  width: 80%;
+}
+.profile-name-input:focus { box-shadow: 0 0 0 2px var(--accent); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-value { font-size: 24px; font-weight: 700; color: var(--text); }
+.stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.history-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.history-day {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg2);
+}
+.history-day:last-child { border: none; }
+.history-date { font-size: 13px; color: var(--text2); }
+.history-xp { font-size: 13px; font-weight: 600; color: var(--accent-dark); }
+
+/* Level Up Overlay */
+.level-up-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(74,69,64,0.4);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.level-up-card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: var(--shadow2);
+  animation: popIn 0.4s ease-out;
+  max-width: 300px;
+}
+.level-up-emoji {
+  font-size: 64px;
+  animation: levelUp 0.6s ease-out;
+  display: inline-block;
+}
+.level-up-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 12px 0 6px;
+}
+.level-up-sub {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 20px;
+}
+.level-up-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 32px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.level-up-btn:active { transform: scale(0.96); }
+
+/* Nav */
+.nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 76px;
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -2px 20px rgba(74,69,64,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 50;
+}
+.nav-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 20px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.nav-icon { font-size: 22px; transition: transform 0.2s; }
+.nav-label { font-size: 10px; color: var(--text3); font-weight: 500; }
+.nav-item.active .nav-label { color: var(--accent-dark); }
+.nav-item.active .nav-icon { transform: scale(1.15); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text3);
+  font-size: 14px;
+}
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ============================================================
+// Telegram Web App integration
+// ============================================================
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();                 // open full-screen
+  tg.enableClosingConfirmation(); // prevent accidental close
+  // Use Telegram header colour
+  try { tg.setHeaderColor('#FBF8F4'); } catch(e) {}
+  try { tg.setBackgroundColor('#FBF8F4'); } catch(e) {}
+}
+
+// Haptic helper — vibrates on Telegram, no-op in browser
+function haptic(type) {
+  try {
+    if (tg?.HapticFeedback) {
+      if (type === 'light')   tg.HapticFeedback.impactOccurred('light');
+      if (type === 'medium')  tg.HapticFeedback.impactOccurred('medium');
+      if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+      if (type === 'heavy')   tg.HapticFeedback.impactOccurred('heavy');
+    }
+  } catch(e) {}
+}
+
+// Get Telegram user name if available
+function getTelegramName() {
+  try {
+    const u = tg?.initDataUnsafe?.user;
+    if (u) return u.first_name || '';
+  } catch(e) {}
+  return '';
+}
+
+// Unique storage key per Telegram user (so multiple users on same device don't clash)
+function storageKey() {
+  try {
+    const uid = tg?.initDataUnsafe?.user?.id;
+    if (uid) return 'glowup_' + uid;
+  } catch(e) {}
+  return 'glowup_data';
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+const today = () => new Date().toISOString().slice(0, 10);
+const formatDate = (d) => {
+  const date = new Date(d + 'T12:00:00');
+  return date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+};
+
+const LEVELS = [
+  { min: 0,   max: 50,     emoji: '🌱', name: 'Росток',   desc: 'Начало пути' },
+  { min: 50,  max: 150,    emoji: '⚡',  name: 'Энергия',  desc: 'Набираешь силу' },
+  { min: 150, max: 300,    emoji: '💪', name: 'Сила',     desc: 'Уверенная мощь' },
+  { min: 300, max: 999999, emoji: '🔥', name: 'Пламя',    desc: 'Неудержимая' },
+];
+
+const ACTIONS = [
+  { id: 'strength', icon: '🏋️‍♀️', name: 'Силовая тренировка', xp: 10, iconClass: 'strength' },
+  { id: 'move',     icon: '🚶‍♀️', name: 'Движение',            xp: 5,  iconClass: 'move' },
+  { id: 'mini',     icon: '✨',     name: 'Мини-движение',       xp: 3,  iconClass: 'mini' },
+  { id: 'water',    icon: '💧',     name: 'Вода',                xp: 2,  iconClass: 'water' },
+  { id: 'joy',      icon: '💖',     name: 'В удовольствие',      xp: 5,  iconClass: 'joy' },
+];
+
+const MOTIVATIONS = [
+  'Ты усиливаешь своё тело ✨',
+  'Ты в контакте с собой 💫',
+  'Ты становишься сильнее 💪',
+  'Каждое движение — подарок себе 🌸',
+  'Ты выбираешь себя 🤍',
+  'Маленькие шаги — большая сила 🌿',
+  'Твоя энергия растёт 🌊',
+  'Ты заботишься о себе 🦋',
+];
+
+// ============================================================
+// Storage
+// ============================================================
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(storageKey())) || {}; } catch { return {}; }
+}
+function saveData(data) { localStorage.setItem(storageKey(), JSON.stringify(data)); }
+function getData() {
+  const d = loadData();
+  if (!d.days) d.days = {};
+  if (!d.workouts) d.workouts = [];
+  if (!d.name) d.name = getTelegramName();
+  return d;
+}
+function getDay(data, date) {
+  if (!data.days[date]) data.days[date] = { actions: [], xp: 0, quest: '', reflection: '', mood: '' };
+  return data.days[date];
+}
+
+function getTotalXP(data) {
+  let total = 0;
+  Object.values(data.days || {}).forEach(d => { total += (d.xp || 0); });
+  return total;
+}
+
+function getStreak(data) {
+  let streak = 0;
+  let d = new Date();
+  let skippedToday = false;
+  while (true) {
+    const key = d.toISOString().slice(0, 10);
+    const day = data.days?.[key];
+    if (day && day.actions && day.actions.length > 0) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else if (key === today() && !skippedToday) {
+      skippedToday = true;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function getLevel(totalXP) {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (totalXP >= LEVELS[i].min) return { ...LEVELS[i], index: i };
+  }
+  return { ...LEVELS[0], index: 0 };
+}
+
+// ============================================================
+// Components
+// ============================================================
+
+function XPFloat({ xp, id }) {
+  return <div key={id} className="xp-float">+{xp} XP</div>;
+}
+
+function Toast({ message, id }) {
+  const [hiding, setHiding] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setHiding(true), 2000); return () => clearTimeout(t); }, []);
+  return <div key={id} className={`toast ${hiding ? 'hiding' : ''}`}>{message}</div>;
+}
+
+function LevelUpOverlay({ level, onClose }) {
+  useEffect(() => { haptic('heavy'); }, []);
+  return (
+    <div className="level-up-overlay" onClick={onClose}>
+      <div className="level-up-card" onClick={e => e.stopPropagation()}>
+        <div className="level-up-emoji">{level.emoji}</div>
+        <div className="level-up-title">LEVEL UP!</div>
+        <div className="level-up-sub">
+          Ты достигла уровня<br/><strong>{level.name}</strong> — {level.desc}
+        </div>
+        <button className="level-up-btn" onClick={onClose}>Продолжить ✨</button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Daily Screen ----
+function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setLevelUp }) {
+  const dayData = getDay(data, today());
+  const totalXP = getTotalXP(data);
+  const level = getLevel(totalXP);
+  const nextLevel = LEVELS[Math.min(level.index + 1, LEVELS.length - 1)];
+  const progressInLevel = totalXP - level.min;
+  const levelRange = level.index < LEVELS.length - 1 ? nextLevel.min - level.min : 100;
+  const progressPct = Math.min((progressInLevel / levelRange) * 100, 100);
+  const streak = getStreak(data);
+
+  const hour = new Date().getHours();
+  const isMorning = hour < 12;
+  const isEvening = hour >= 18;
+  const name = data.name || 'солнце';
+
+  const toggleAction = (action) => {
+    const newData = { ...data, days: { ...data.days } };
+    const day = { ...getDay(newData, today()) };
+    const actions = [...(day.actions || [])];
+    const idx = actions.indexOf(action.id);
+    const oldLevel = getLevel(getTotalXP(data));
+
+    if (idx >= 0) {
+      actions.splice(idx, 1);
+      day.xp = (day.xp || 0) - action.xp;
+      haptic('light');
+    } else {
+      actions.push(action.id);
+      day.xp = (day.xp || 0) + action.xp;
+      haptic('medium');
+
+      // XP float
+      const fid = Date.now();
+      setFloats(prev => [...prev, { xp: action.xp, id: fid }]);
+      setTimeout(() => setFloats(prev => prev.filter(f => f.id !== fid)), 1000);
+
+      // Toast
+      const msg = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+      const tid = Date.now() + 1;
+      setToasts(prev => [...prev, { message: msg, id: tid }]);
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== tid)), 2500);
+    }
+
+    day.actions = actions;
+    newData.days[today()] = day;
+
+    // Streak bonuses
+    const newStreak = getStreak(newData);
+    if (newStreak === 3 && streak < 3) {
+      day.xp += 10;
+      const sid = Date.now() + 2;
+      setFloats(prev => [...prev, { xp: 10, id: sid }]);
+      setTimeout(() => setFloats(prev => prev.filter(f => f.id !== sid)), 1200);
+      haptic('success');
+    }
+    if (newStreak === 7 && streak < 7) {
+      day.xp += 20;
+      const sid = Date.now() + 3;
+      setFloats(prev => [...prev, { xp: 20, id: sid }]);
+      setTimeout(() => setFloats(prev => prev.filter(f => f.id !== sid)), 1200);
+      haptic('success');
+    }
+
+    newData.days[today()] = day;
+    saveData(newData);
+    setData(newData);
+
+    // Level up?
+    const newLevel = getLevel(getTotalXP(newData));
+    if (newLevel.index > oldLevel.index) {
+      setTimeout(() => setLevelUp(newLevel), 400);
+    }
+  };
+
+  const updateField = (field, value) => {
+    const newData = { ...data, days: { ...data.days } };
+    const day = { ...getDay(newData, today()) };
+    day[field] = value;
+    newData.days[today()] = day;
+    saveData(newData);
+    setData(newData);
+  };
+
+  return (
+    <div className="screen">
+      <div className="header">
+        <div className="header-date">{formatDate(today())}</div>
+        <div className="header-greeting">Привет, {name} ✨</div>
+        <div className="header-sub">Сегодня: {dayData.xp || 0} XP</div>
+      </div>
+
+      <div className="level-card">
+        <div className="level-top">
+          <div className="level-emoji">{level.emoji}</div>
+          <div className="level-info">
+            <div className="level-label">{level.name}</div>
+            <div className="level-xp">{totalXP} <span>XP</span></div>
+          </div>
+        </div>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${progressPct}%` }}></div>
+        </div>
+        <div className="progress-text">
+          {level.index < LEVELS.length - 1
+            ? `${nextLevel.min - totalXP} XP до ${nextLevel.emoji} ${nextLevel.name}`
+            : 'Максимальный уровень! 🎉'}
+        </div>
+      </div>
+
+      <div className="streak-row">
+        <div className="streak-card">
+          <div className="streak-num">{streak} 🔥</div>
+          <div className="streak-label">дней подряд</div>
+        </div>
+        <div className="streak-card">
+          <div className="streak-num">{dayData.xp || 0}</div>
+          <div className="streak-label">XP сегодня</div>
+        </div>
+      </div>
+
+      {isMorning && (
+        <div className="journal-section" style={{ marginTop: 0, marginBottom: 14 }}>
+          <div className="journal-card">
+            <div className="journal-label">🌅 Какой сегодня квест?</div>
+            <textarea className="journal-input" placeholder="Мой план на сегодня..." rows="2"
+              value={dayData.quest || ''} onChange={e => updateField('quest', e.target.value)} />
+          </div>
+        </div>
+      )}
+
+      <div className="actions-title">Действия</div>
+      {ACTIONS.map((action, i) => (
+        <button key={action.id}
+          className={`action-btn ${(dayData.actions || []).includes(action.id) ? 'done' : ''}`}
+          style={{ animationDelay: `${0.25 + i * 0.05}s` }}
+          onClick={() => toggleAction(action)}>
+          <div className={`action-icon ${action.iconClass}`}>{action.icon}</div>
+          <div className="action-text">
+            <div className="action-name">{action.name}</div>
+            <div className="action-xp">+{action.xp} XP</div>
+          </div>
+          <div className="action-check">
+            {(dayData.actions || []).includes(action.id) && '✓'}
+          </div>
+        </button>
+      ))}
+
+      <div className="journal-section">
+        <div className="journal-card">
+          <div className="journal-label">💭 Как я себя чувствую сегодня?</div>
+          <textarea className="journal-input" placeholder="Запиши свои мысли..." rows="2"
+            value={dayData.mood || ''} onChange={e => updateField('mood', e.target.value)} />
+        </div>
+        {isEvening && (
+          <div className="journal-card">
+            <div className="journal-label">🌙 Что ты сегодня сделала для себя?</div>
+            <textarea className="journal-input" placeholder="Мои достижения за день..." rows="2"
+              value={dayData.reflection || ''} onChange={e => updateField('reflection', e.target.value)} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Workout Screen ----
+function WorkoutScreen({ data, setData }) {
+  const [showModal, setShowModal] = useState(false);
+  const [exerciseName, setExerciseName] = useState('');
+  const [weight, setWeight] = useState('');
+  const [reps, setReps] = useState('');
+  const workouts = data.workouts || [];
+
+  const addWorkout = () => {
+    if (!exerciseName.trim()) return;
+    haptic('medium');
+    const newData = { ...data };
+    newData.workouts = [...(newData.workouts || []), {
+      id: Date.now(), name: exerciseName.trim(),
+      weight: parseFloat(weight) || 0, reps: parseInt(reps) || 0, date: today(),
+    }];
+    saveData(newData);
+    setData(newData);
+    setExerciseName(''); setWeight(''); setReps('');
+    setShowModal(false);
+  };
+
+  const deleteWorkout = (id) => {
+    haptic('light');
+    const newData = { ...data };
+    newData.workouts = newData.workouts.filter(w => w.id !== id);
+    saveData(newData); setData(newData);
+  };
+
+  const grouped = {};
+  workouts.forEach(w => { if (!grouped[w.name]) grouped[w.name] = []; grouped[w.name].push(w); });
+  const getProgress = (entries) => {
+    if (entries.length < 2) return null;
+    const sorted = [...entries].sort((a, b) => a.id - b.id);
+    const first = sorted[0].weight, last = sorted[sorted.length - 1].weight;
+    return last > first ? `${first} → ${last} кг 📈` : null;
+  };
+
+  const recentWorkouts = [...workouts].sort((a, b) => b.id - a.id).slice(0, 20);
+
+  return (
+    <div className="screen">
+      <div className="workout-header fade-in">
+        <div className="workout-title">Тренировки 🏋️‍♀️</div>
+        <button className="btn-add" onClick={() => { setShowModal(true); haptic('light'); }}>+</button>
+      </div>
+
+      {recentWorkouts.length === 0 ? (
+        <div className="empty-state fade-in">
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🌿</div>
+          Записывай свои тренировки<br/>и наблюдай прогресс
+        </div>
+      ) : recentWorkouts.map(w => {
+        const progress = getProgress(grouped[w.name] || []);
+        return (
+          <div key={w.id} className="workout-card">
+            <div className="workout-card-header">
+              <div className="workout-name">{w.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {progress && <div className="workout-progress-badge">{progress}</div>}
+                <button className="delete-btn" onClick={() => deleteWorkout(w.id)}>×</button>
+              </div>
+            </div>
+            <div className="workout-detail">
+              <span>⚖️ {w.weight} кг</span>
+              <span>🔄 {w.reps} повт.</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)' }}>
+                {new Date(w.date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">Новая запись ✨</div>
+            <div className="modal-field">
+              <label>Упражнение</label>
+              <input placeholder="Например: Приседания" value={exerciseName}
+                onChange={e => setExerciseName(e.target.value)} autoFocus />
+            </div>
+            <div className="modal-row">
+              <div className="modal-field">
+                <label>Вес (кг)</label>
+                <input type="number" placeholder="0" value={weight}
+                  onChange={e => setWeight(e.target.value)} inputMode="decimal" />
+              </div>
+              <div className="modal-field">
+                <label>Повторения</label>
+                <input type="number" placeholder="0" value={reps}
+                  onChange={e => setReps(e.target.value)} inputMode="numeric" />
+              </div>
+            </div>
+            <button className="btn-save" onClick={addWorkout}>Сохранить</button>
+            <button className="btn-cancel" onClick={() => setShowModal(false)}>Отмена</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Profile Screen ----
+function ProfileScreen({ data, setData }) {
+  const totalXP = getTotalXP(data);
+  const level = getLevel(totalXP);
+  const streak = getStreak(data);
+  const totalDays = Object.keys(data.days || {}).filter(k => {
+    const d = data.days[k]; return d.actions && d.actions.length > 0;
+  }).length;
+
+  const updateName = (name) => {
+    const newData = { ...data, name }; saveData(newData); setData(newData);
+  };
+
+  const history = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const day = data.days?.[key];
+    history.push({
+      date: d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }),
+      xp: day?.xp || 0, active: day?.actions?.length > 0,
+    });
+  }
+
+  return (
+    <div className="screen">
+      <div className="profile-name-card fade-in">
+        <div className="profile-avatar">{level.emoji}</div>
+        <div style={{ marginBottom: 4 }}>
+          <input className="profile-name-input" placeholder="Твоё имя"
+            value={data.name || ''} onChange={e => updateName(e.target.value)} />
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 8 }}>
+          {level.name} — {level.desc}
+        </div>
+      </div>
+
+      <div className="stats-grid fade-in">
+        <div className="stat-card"><div className="stat-value">{totalXP}</div><div className="stat-label">Всего XP</div></div>
+        <div className="stat-card"><div className="stat-value">{streak} 🔥</div><div className="stat-label">Серия</div></div>
+        <div className="stat-card"><div className="stat-value">{totalDays}</div><div className="stat-label">Дней активности</div></div>
+        <div className="stat-card"><div className="stat-value">{(data.workouts || []).length}</div><div className="stat-label">Тренировок</div></div>
+      </div>
+
+      <div className="history-card fade-in">
+        <div className="history-title">Последние 7 дней</div>
+        {history.map((h, i) => (
+          <div key={i} className="history-day">
+            <div className="history-date">{h.active ? '✅' : '⬜'} {h.date}</div>
+            <div className="history-xp">{h.xp > 0 ? `+${h.xp} XP` : '—'}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---- App ----
+function App() {
+  const [data, setData] = useState(getData);
+  const [screen, setScreen] = useState('daily');
+  const [floats, setFloats] = useState([]);
+  const [toasts, setToasts] = useState([]);
+  const [levelUp, setLevelUp] = useState(null);
+
+  return (
+    <>
+      {screen === 'daily' && <DailyScreen data={data} setData={setData}
+        floats={floats} setFloats={setFloats} toasts={toasts} setToasts={setToasts} setLevelUp={setLevelUp} />}
+      {screen === 'workout' && <WorkoutScreen data={data} setData={setData} />}
+      {screen === 'profile' && <ProfileScreen data={data} setData={setData} />}
+
+      {floats.map(f => <XPFloat key={f.id} xp={f.xp} id={f.id} />)}
+      {toasts.map(t => <Toast key={t.id} message={t.message} id={t.id} />)}
+      {levelUp && <LevelUpOverlay level={levelUp} onClose={() => setLevelUp(null)} />}
+
+      <nav className="nav">
+        <button className={`nav-item ${screen === 'daily' ? 'active' : ''}`}
+          onClick={() => { setScreen('daily'); haptic('light'); }}>
+          <span className="nav-icon">🏠</span><span className="nav-label">Сегодня</span>
+        </button>
+        <button className={`nav-item ${screen === 'workout' ? 'active' : ''}`}
+          onClick={() => { setScreen('workout'); haptic('light'); }}>
+          <span className="nav-icon">🏋️‍♀️</span><span className="nav-label">Тренировки</span>
+        </button>
+        <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`}
+          onClick={() => { setScreen('profile'); haptic('light'); }}>
+          <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
+        </button>
+      </nav>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
