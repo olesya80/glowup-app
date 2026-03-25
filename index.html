@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Glow Up — Фитнес-квест</title>
-<!-- Telegram Web App SDK -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -47,6 +47,24 @@ html, body {
   overflow: hidden;
 }
 
+/* Loading */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+}
+.loading-emoji {
+  font-size: 56px;
+  animation: gentleBounce 1.5s ease-in-out infinite;
+}
+.loading-text {
+  font-size: 15px;
+  color: var(--text2);
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(12px); }
@@ -64,6 +82,10 @@ html, body {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 @keyframes popIn {
   0% { transform: scale(0.8); opacity: 0; }
   60% { transform: scale(1.1); }
@@ -80,10 +102,6 @@ html, body {
   75% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
-@keyframes confetti {
-  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
-  100% { opacity: 0; transform: translateY(-80px) rotate(360deg); }
-}
 
 .fade-in { animation: fadeIn 0.4s ease-out; }
 .pop-in { animation: popIn 0.3s ease-out; }
@@ -94,7 +112,7 @@ html, body {
   top: 0; left: 0; right: 0; bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 16px 100px;
+  padding: 20px 20px 100px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -103,11 +121,11 @@ html, body {
 /* Header */
 .header {
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   animation: fadeIn 0.5s ease-out;
 }
 .header-date {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text2);
   font-weight: 400;
   letter-spacing: 0.5px;
@@ -129,9 +147,9 @@ html, body {
 .level-card {
   background: var(--card);
   border-radius: 20px;
-  padding: 18px;
+  padding: 20px;
   box-shadow: var(--shadow);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   animation: fadeIn 0.5s ease-out 0.1s both;
 }
 .level-top {
@@ -184,19 +202,19 @@ html, body {
 .streak-row {
   display: flex;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   animation: fadeIn 0.5s ease-out 0.15s both;
 }
 .streak-card {
   flex: 1;
   background: var(--card);
   border-radius: 16px;
-  padding: 12px;
+  padding: 14px;
   box-shadow: var(--shadow);
   text-align: center;
 }
 .streak-num {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
 }
 .streak-label {
@@ -207,11 +225,11 @@ html, body {
 
 /* Action Buttons */
 .actions-title {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   animation: fadeIn 0.5s ease-out 0.2s both;
 }
 .action-btn {
@@ -219,9 +237,9 @@ html, body {
   align-items: center;
   width: 100%;
   background: var(--card);
-  border: 2px solid transparent;
+  border: none;
   border-radius: 16px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 8px;
   box-shadow: var(--shadow);
   cursor: pointer;
@@ -240,14 +258,14 @@ html, body {
   border: 2px solid var(--accent);
 }
 .action-icon {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  margin-right: 12px;
+  font-size: 20px;
+  margin-right: 14px;
   flex-shrink: 0;
 }
 .action-icon.strength { background: var(--warm2); }
@@ -255,7 +273,10 @@ html, body {
 .action-icon.mini { background: var(--lavender); }
 .action-icon.water { background: #C4DEE8; }
 .action-icon.joy { background: var(--gold); }
-.action-text { flex: 1; text-align: left; }
+.action-text {
+  flex: 1;
+  text-align: left;
+}
 .action-name {
   font-size: 15px;
   font-weight: 500;
@@ -276,7 +297,6 @@ html, body {
   justify-content: center;
   flex-shrink: 0;
   transition: all 0.2s ease;
-  font-size: 14px;
 }
 .action-btn.done .action-check {
   background: var(--accent-dark);
@@ -312,25 +332,20 @@ html, body {
   font-size: 14px;
   color: var(--text);
   text-align: center;
-  animation: popIn 0.3s ease-out;
+  animation: popIn 0.3s ease-out, fadeIn 0.3s ease-out reverse 2s forwards;
   z-index: 999;
   max-width: 90%;
-  white-space: nowrap;
-}
-.toast.hiding {
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
-/* Journal */
+/* Mood / Journal */
 .journal-section {
-  margin-top: 14px;
+  margin-top: 16px;
   animation: fadeIn 0.5s ease-out 0.3s both;
 }
 .journal-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 14px;
+  padding: 16px;
   box-shadow: var(--shadow);
   margin-bottom: 10px;
 }
@@ -352,7 +367,9 @@ html, body {
   outline: none;
   transition: box-shadow 0.2s;
 }
-.journal-input:focus { box-shadow: 0 0 0 2px var(--accent); }
+.journal-input:focus {
+  box-shadow: 0 0 0 2px var(--accent);
+}
 .journal-input::placeholder { color: var(--text3); }
 
 /* Workout Screen */
@@ -360,7 +377,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 .workout-title {
   font-size: 22px;
@@ -386,7 +403,7 @@ html, body {
 .workout-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 14px;
+  padding: 16px;
   box-shadow: var(--shadow);
   margin-bottom: 10px;
   animation: fadeIn 0.3s ease-out;
@@ -395,15 +412,15 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .workout-name {
   font-size: 16px;
   font-weight: 600;
 }
 .workout-progress-badge {
-  font-size: 11px;
-  padding: 3px 10px;
+  font-size: 12px;
+  padding: 4px 10px;
   border-radius: 20px;
   background: var(--accent2);
   color: var(--accent-dark);
@@ -411,13 +428,13 @@ html, body {
 }
 .workout-detail {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   font-size: 13px;
   color: var(--text2);
 }
 .workout-detail span { display: flex; align-items: center; gap: 4px; }
 
-/* Modal */
+/* Add Workout Modal */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -442,7 +459,9 @@ html, body {
   text-align: center;
   margin-bottom: 20px;
 }
-.modal-field { margin-bottom: 14px; }
+.modal-field {
+  margin-bottom: 14px;
+}
 .modal-field label {
   font-size: 12px;
   color: var(--text2);
@@ -464,7 +483,10 @@ html, body {
   box-shadow: var(--shadow);
 }
 .modal-field input:focus { box-shadow: 0 0 0 2px var(--accent); }
-.modal-row { display: flex; gap: 10px; }
+.modal-row {
+  display: flex;
+  gap: 10px;
+}
 .modal-row .modal-field { flex: 1; }
 .btn-save {
   width: 100%;
@@ -494,14 +516,17 @@ html, body {
   margin-top: 4px;
 }
 
-/* Profile */
+/* Profile Screen */
+.profile-section {
+  margin-bottom: 20px;
+}
 .profile-name-card {
   background: var(--card);
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--shadow);
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .profile-avatar {
   font-size: 56px;
@@ -528,16 +553,20 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .stat-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 14px;
+  padding: 16px;
   box-shadow: var(--shadow);
   text-align: center;
 }
-.stat-value { font-size: 24px; font-weight: 700; color: var(--text); }
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
 .stat-label {
   font-size: 11px;
   color: var(--text3);
@@ -552,7 +581,11 @@ html, body {
   padding: 16px;
   box-shadow: var(--shadow);
 }
-.history-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.history-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
 .history-day {
   display: flex;
   align-items: center;
@@ -593,6 +626,7 @@ html, body {
   font-size: 22px;
   font-weight: 700;
   margin: 12px 0 6px;
+  color: var(--text);
 }
 .level-up-sub {
   font-size: 14px;
@@ -610,13 +644,14 @@ html, body {
   font-weight: 600;
   cursor: pointer;
 }
-.level-up-btn:active { transform: scale(0.96); }
 
-/* Nav */
+/* Nav Bar */
 .nav {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 76px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
   background: var(--card);
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -2px 20px rgba(74,69,64,0.08);
@@ -634,15 +669,23 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 8px 20px;
+  padding: 8px 16px;
   transition: all 0.2s;
   font-family: inherit;
 }
-.nav-icon { font-size: 22px; transition: transform 0.2s; }
-.nav-label { font-size: 10px; color: var(--text3); font-weight: 500; }
+.nav-icon {
+  font-size: 22px;
+  transition: transform 0.2s;
+}
+.nav-label {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 500;
+}
 .nav-item.active .nav-label { color: var(--accent-dark); }
 .nav-item.active .nav-icon { transform: scale(1.15); }
 
+/* Misc */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -657,64 +700,169 @@ html, body {
   cursor: pointer;
   padding: 4px 8px;
 }
+.delete-btn:hover { color: var(--rose); }
+
+/* Cloud sync indicator */
+.sync-indicator {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--text3);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.sync-indicator.visible { opacity: 1; }
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
+<div id="sync-indicator" class="sync-indicator">
+  <span class="sync-dot"></span> сохранено в облаке
+</div>
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useCallback, useRef } = React;
 
 // ============================================================
-// Telegram Web App integration
+// TELEGRAM INTEGRATION
 // ============================================================
 const tg = window.Telegram?.WebApp;
+const CS = tg?.CloudStorage;
+
+// Init Telegram
 if (tg) {
   tg.ready();
-  tg.expand();                 // open full-screen
-  tg.enableClosingConfirmation(); // prevent accidental close
-  // Use Telegram header colour
-  try { tg.setHeaderColor('#FBF8F4'); } catch(e) {}
-  try { tg.setBackgroundColor('#FBF8F4'); } catch(e) {}
+  tg.expand();
+  tg.enableClosingConfirmation?.();
 }
 
-// Haptic helper — vibrates on Telegram, no-op in browser
-function haptic(type) {
+// Haptic feedback helper
+function haptic(type = 'light') {
   try {
     if (tg?.HapticFeedback) {
-      if (type === 'light')   tg.HapticFeedback.impactOccurred('light');
-      if (type === 'medium')  tg.HapticFeedback.impactOccurred('medium');
       if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
-      if (type === 'heavy')   tg.HapticFeedback.impactOccurred('heavy');
+      else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+      else tg.HapticFeedback.impactOccurred('light');
     }
   } catch(e) {}
 }
 
-// Get Telegram user name if available
-function getTelegramName() {
-  try {
-    const u = tg?.initDataUnsafe?.user;
-    if (u) return u.first_name || '';
-  } catch(e) {}
-  return '';
+// ============================================================
+// CLOUD STORAGE — chunked to bypass 4096 byte limit per key
+// ============================================================
+const CHUNK_SIZE = 3800;
+
+function showSyncIndicator() {
+  const el = document.getElementById('sync-indicator');
+  if (el) {
+    el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 1500);
+  }
 }
 
-// Unique storage key per Telegram user (so multiple users on same device don't clash)
-function storageKey() {
+function saveToCloud(data) {
+  if (!CS) return;
   try {
-    const uid = tg?.initDataUnsafe?.user?.id;
-    if (uid) return 'glowup_' + uid;
-  } catch(e) {}
-  return 'glowup_data';
+    const json = JSON.stringify(data);
+    const numChunks = Math.ceil(json.length / CHUNK_SIZE);
+    CS.setItem('_chunks', String(numChunks), () => {});
+    for (let i = 0; i < numChunks; i++) {
+      CS.setItem('_d' + i, json.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE), () => {});
+    }
+    // Clean up old extra chunks (if data shrank)
+    for (let i = numChunks; i < numChunks + 5; i++) {
+      CS.removeItem('_d' + i, () => {});
+    }
+    showSyncIndicator();
+  } catch(e) {
+    console.error('CloudStorage save error:', e);
+  }
+}
+
+function loadFromCloud() {
+  return new Promise((resolve) => {
+    if (!CS) { resolve(null); return; }
+    CS.getItem('_chunks', (err, val) => {
+      if (err || !val) { resolve(null); return; }
+      const n = parseInt(val);
+      if (isNaN(n) || n <= 0) { resolve(null); return; }
+      const keys = Array.from({ length: n }, (_, i) => '_d' + i);
+      CS.getItems(keys, (err2, vals) => {
+        if (err2 || !vals) { resolve(null); return; }
+        const json = keys.map(k => vals[k] || '').join('');
+        try { resolve(JSON.parse(json)); }
+        catch { resolve(null); }
+      });
+    });
+  });
 }
 
 // ============================================================
-// Helpers
+// LOCAL STORAGE (fast cache)
 // ============================================================
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem('glowup_data')) || null; }
+  catch { return null; }
+}
+function saveLocal(data) {
+  try { localStorage.setItem('glowup_data', JSON.stringify(data)); } catch {}
+}
+
+// ============================================================
+// MERGED SAVE — both local + cloud
+// ============================================================
+let saveTimeout = null;
+function saveData(data) {
+  saveLocal(data);
+  // Debounce cloud saves to avoid spamming
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => saveToCloud(data), 500);
+}
+
+// ============================================================
+// Merge cloud data with local (cloud wins for conflicts, merge days)
+// ============================================================
+function mergeData(local, cloud) {
+  if (!cloud) return local || defaultData();
+  if (!local) return cloud;
+  // Cloud is the source of truth; merge any local days that cloud doesn't have
+  const merged = { ...cloud };
+  merged.days = { ...(local.days || {}), ...(cloud.days || {}) };
+  merged.workouts = cloud.workouts && cloud.workouts.length > 0
+    ? cloud.workouts
+    : (local.workouts || []);
+  if (!merged.name && local.name) merged.name = local.name;
+  return merged;
+}
+
+function defaultData() {
+  return { days: {}, workouts: [], name: '' };
+}
+
+function ensureData(data) {
+  if (!data) data = {};
+  if (!data.days) data.days = {};
+  if (!data.workouts) data.workouts = [];
+  if (!data.name) data.name = '';
+  return data;
+}
+
+// --- Helpers ---
 const today = () => new Date().toISOString().slice(0, 10);
 const formatDate = (d) => {
   const date = new Date(d + 'T12:00:00');
@@ -722,18 +870,18 @@ const formatDate = (d) => {
 };
 
 const LEVELS = [
-  { min: 0,   max: 50,     emoji: '🌱', name: 'Росток',   desc: 'Начало пути' },
-  { min: 50,  max: 150,    emoji: '⚡',  name: 'Энергия',  desc: 'Набираешь силу' },
-  { min: 150, max: 300,    emoji: '💪', name: 'Сила',     desc: 'Уверенная мощь' },
-  { min: 300, max: 999999, emoji: '🔥', name: 'Пламя',    desc: 'Неудержимая' },
+  { min: 0, max: 50, emoji: '🌱', name: 'Росток', desc: 'Начало пути' },
+  { min: 50, max: 150, emoji: '⚡', name: 'Энергия', desc: 'Набираешь силу' },
+  { min: 150, max: 300, emoji: '💪', name: 'Сила', desc: 'Уверенная мощь' },
+  { min: 300, max: 999999, emoji: '🔥', name: 'Пламя', desc: 'Неудержимая' },
 ];
 
 const ACTIONS = [
   { id: 'strength', icon: '🏋️‍♀️', name: 'Силовая тренировка', xp: 10, iconClass: 'strength' },
-  { id: 'move',     icon: '🚶‍♀️', name: 'Движение',            xp: 5,  iconClass: 'move' },
-  { id: 'mini',     icon: '✨',     name: 'Мини-движение',       xp: 3,  iconClass: 'mini' },
-  { id: 'water',    icon: '💧',     name: 'Вода',                xp: 2,  iconClass: 'water' },
-  { id: 'joy',      icon: '💖',     name: 'В удовольствие',      xp: 5,  iconClass: 'joy' },
+  { id: 'move', icon: '🚶‍♀️', name: 'Движение', xp: 5, iconClass: 'move' },
+  { id: 'mini', icon: '✨', name: 'Мини-движение', xp: 3, iconClass: 'mini' },
+  { id: 'water', icon: '💧', name: 'Вода', xp: 2, iconClass: 'water' },
+  { id: 'joy', icon: '💖', name: 'В удовольствие', xp: 5, iconClass: 'joy' },
 ];
 
 const MOTIVATIONS = [
@@ -747,22 +895,10 @@ const MOTIVATIONS = [
   'Ты заботишься о себе 🦋',
 ];
 
-// ============================================================
-// Storage
-// ============================================================
-function loadData() {
-  try { return JSON.parse(localStorage.getItem(storageKey())) || {}; } catch { return {}; }
-}
-function saveData(data) { localStorage.setItem(storageKey(), JSON.stringify(data)); }
-function getData() {
-  const d = loadData();
-  if (!d.days) d.days = {};
-  if (!d.workouts) d.workouts = [];
-  if (!d.name) d.name = getTelegramName();
-  return d;
-}
 function getDay(data, date) {
-  if (!data.days[date]) data.days[date] = { actions: [], xp: 0, quest: '', reflection: '', mood: '' };
+  if (!data.days[date]) {
+    data.days[date] = { actions: [], xp: 0, quest: '', reflection: '', mood: '' };
+  }
   return data.days[date];
 }
 
@@ -775,16 +911,15 @@ function getTotalXP(data) {
 function getStreak(data) {
   let streak = 0;
   let d = new Date();
-  let skippedToday = false;
   while (true) {
     const key = d.toISOString().slice(0, 10);
     const day = data.days?.[key];
     if (day && day.actions && day.actions.length > 0) {
       streak++;
       d.setDate(d.getDate() - 1);
-    } else if (key === today() && !skippedToday) {
-      skippedToday = true;
+    } else if (key === today()) {
       d.setDate(d.getDate() - 1);
+      continue;
     } else {
       break;
     }
@@ -799,74 +934,71 @@ function getLevel(totalXP) {
   return { ...LEVELS[0], index: 0 };
 }
 
-// ============================================================
-// Components
-// ============================================================
-
+// --- XP Float ---
 function XPFloat({ xp, id }) {
   return <div key={id} className="xp-float">+{xp} XP</div>;
 }
 
+// --- Toast ---
 function Toast({ message, id }) {
-  const [hiding, setHiding] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setHiding(true), 2000); return () => clearTimeout(t); }, []);
-  return <div key={id} className={`toast ${hiding ? 'hiding' : ''}`}>{message}</div>;
+  return <div key={id} className="toast">{message}</div>;
 }
 
+// --- Level Up Overlay ---
 function LevelUpOverlay({ level, onClose }) {
-  useEffect(() => { haptic('heavy'); }, []);
+  useEffect(() => { haptic('success'); }, []);
   return (
     <div className="level-up-overlay" onClick={onClose}>
       <div className="level-up-card" onClick={e => e.stopPropagation()}>
         <div className="level-up-emoji">{level.emoji}</div>
         <div className="level-up-title">LEVEL UP!</div>
         <div className="level-up-sub">
-          Ты достигла уровня<br/><strong>{level.name}</strong> — {level.desc}
+          Ты достигла уровня<br/>
+          <strong>{level.name}</strong> — {level.desc}
         </div>
-        <button className="level-up-btn" onClick={onClose}>Продолжить ✨</button>
+        <button className="level-up-btn" onClick={onClose}>
+          Продолжить ✨
+        </button>
       </div>
     </div>
   );
 }
 
-// ---- Daily Screen ----
+// --- Daily Screen ---
 function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setLevelUp }) {
   const dayData = getDay(data, today());
   const totalXP = getTotalXP(data);
   const level = getLevel(totalXP);
   const nextLevel = LEVELS[Math.min(level.index + 1, LEVELS.length - 1)];
   const progressInLevel = totalXP - level.min;
-  const levelRange = level.index < LEVELS.length - 1 ? nextLevel.min - level.min : 100;
+  const levelRange = (level.index < LEVELS.length - 1) ? (nextLevel.min - level.min) : 100;
   const progressPct = Math.min((progressInLevel / levelRange) * 100, 100);
   const streak = getStreak(data);
 
-  const hour = new Date().getHours();
-  const isMorning = hour < 12;
-  const isEvening = hour >= 18;
-  const name = data.name || 'солнце';
+  const isHour = new Date().getHours();
+  const isMorning = isHour < 12;
+  const isEvening = isHour >= 18;
 
   const toggleAction = (action) => {
+    haptic('medium');
     const newData = { ...data, days: { ...data.days } };
     const day = { ...getDay(newData, today()) };
     const actions = [...(day.actions || [])];
     const idx = actions.indexOf(action.id);
+
     const oldLevel = getLevel(getTotalXP(data));
 
     if (idx >= 0) {
       actions.splice(idx, 1);
       day.xp = (day.xp || 0) - action.xp;
-      haptic('light');
     } else {
       actions.push(action.id);
       day.xp = (day.xp || 0) + action.xp;
-      haptic('medium');
 
-      // XP float
       const fid = Date.now();
       setFloats(prev => [...prev, { xp: action.xp, id: fid }]);
       setTimeout(() => setFloats(prev => prev.filter(f => f.id !== fid)), 1000);
 
-      // Toast
       const msg = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
       const tid = Date.now() + 1;
       setToasts(prev => [...prev, { message: msg, id: tid }]);
@@ -876,42 +1008,44 @@ function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setL
     day.actions = actions;
     newData.days[today()] = day;
 
-    // Streak bonuses
     const newStreak = getStreak(newData);
     if (newStreak === 3 && streak < 3) {
       day.xp += 10;
       const sid = Date.now() + 2;
       setFloats(prev => [...prev, { xp: 10, id: sid }]);
       setTimeout(() => setFloats(prev => prev.filter(f => f.id !== sid)), 1200);
-      haptic('success');
     }
     if (newStreak === 7 && streak < 7) {
       day.xp += 20;
       const sid = Date.now() + 3;
       setFloats(prev => [...prev, { xp: 20, id: sid }]);
       setTimeout(() => setFloats(prev => prev.filter(f => f.id !== sid)), 1200);
-      haptic('success');
     }
 
     newData.days[today()] = day;
     saveData(newData);
     setData(newData);
 
-    // Level up?
     const newLevel = getLevel(getTotalXP(newData));
     if (newLevel.index > oldLevel.index) {
       setTimeout(() => setLevelUp(newLevel), 400);
     }
   };
 
+  const journalTimeout = useRef(null);
   const updateField = (field, value) => {
     const newData = { ...data, days: { ...data.days } };
     const day = { ...getDay(newData, today()) };
     day[field] = value;
     newData.days[today()] = day;
-    saveData(newData);
+    // Save locally instantly, cloud with debounce
+    saveLocal(newData);
+    clearTimeout(journalTimeout.current);
+    journalTimeout.current = setTimeout(() => saveToCloud(newData), 1500);
     setData(newData);
   };
+
+  const name = data.name || (tg?.initDataUnsafe?.user?.first_name) || 'солнце';
 
   return (
     <div className="screen">
@@ -951,21 +1085,28 @@ function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setL
       </div>
 
       {isMorning && (
-        <div className="journal-section" style={{ marginTop: 0, marginBottom: 14 }}>
+        <div className="journal-section" style={{ marginTop: 0, marginBottom: 16 }}>
           <div className="journal-card">
             <div className="journal-label">🌅 Какой сегодня квест?</div>
-            <textarea className="journal-input" placeholder="Мой план на сегодня..." rows="2"
-              value={dayData.quest || ''} onChange={e => updateField('quest', e.target.value)} />
+            <textarea
+              className="journal-input"
+              placeholder="Мой план на сегодня..."
+              rows="2"
+              value={dayData.quest || ''}
+              onChange={e => updateField('quest', e.target.value)}
+            />
           </div>
         </div>
       )}
 
       <div className="actions-title">Действия</div>
       {ACTIONS.map((action, i) => (
-        <button key={action.id}
+        <button
+          key={action.id}
           className={`action-btn ${(dayData.actions || []).includes(action.id) ? 'done' : ''}`}
           style={{ animationDelay: `${0.25 + i * 0.05}s` }}
-          onClick={() => toggleAction(action)}>
+          onClick={() => toggleAction(action)}
+        >
           <div className={`action-icon ${action.iconClass}`}>{action.icon}</div>
           <div className="action-text">
             <div className="action-name">{action.name}</div>
@@ -980,14 +1121,25 @@ function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setL
       <div className="journal-section">
         <div className="journal-card">
           <div className="journal-label">💭 Как я себя чувствую сегодня?</div>
-          <textarea className="journal-input" placeholder="Запиши свои мысли..." rows="2"
-            value={dayData.mood || ''} onChange={e => updateField('mood', e.target.value)} />
+          <textarea
+            className="journal-input"
+            placeholder="Запиши свои мысли..."
+            rows="2"
+            value={dayData.mood || ''}
+            onChange={e => updateField('mood', e.target.value)}
+          />
         </div>
+
         {isEvening && (
           <div className="journal-card">
             <div className="journal-label">🌙 Что ты сегодня сделала для себя?</div>
-            <textarea className="journal-input" placeholder="Мои достижения за день..." rows="2"
-              value={dayData.reflection || ''} onChange={e => updateField('reflection', e.target.value)} />
+            <textarea
+              className="journal-input"
+              placeholder="Мои достижения за день..."
+              rows="2"
+              value={dayData.reflection || ''}
+              onChange={e => updateField('reflection', e.target.value)}
+            />
           </div>
         )}
       </div>
@@ -995,25 +1147,32 @@ function DailyScreen({ data, setData, floats, setFloats, toasts, setToasts, setL
   );
 }
 
-// ---- Workout Screen ----
+// --- Workout Screen ---
 function WorkoutScreen({ data, setData }) {
   const [showModal, setShowModal] = useState(false);
   const [exerciseName, setExerciseName] = useState('');
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
+
   const workouts = data.workouts || [];
 
   const addWorkout = () => {
     if (!exerciseName.trim()) return;
-    haptic('medium');
+    haptic('success');
     const newData = { ...data };
-    newData.workouts = [...(newData.workouts || []), {
-      id: Date.now(), name: exerciseName.trim(),
-      weight: parseFloat(weight) || 0, reps: parseInt(reps) || 0, date: today(),
-    }];
+    const entry = {
+      id: Date.now(),
+      name: exerciseName.trim(),
+      weight: parseFloat(weight) || 0,
+      reps: parseInt(reps) || 0,
+      date: today(),
+    };
+    newData.workouts = [...(newData.workouts || []), entry];
     saveData(newData);
     setData(newData);
-    setExerciseName(''); setWeight(''); setReps('');
+    setExerciseName('');
+    setWeight('');
+    setReps('');
     setShowModal(false);
   };
 
@@ -1021,16 +1180,23 @@ function WorkoutScreen({ data, setData }) {
     haptic('light');
     const newData = { ...data };
     newData.workouts = newData.workouts.filter(w => w.id !== id);
-    saveData(newData); setData(newData);
+    saveData(newData);
+    setData(newData);
   };
 
   const grouped = {};
-  workouts.forEach(w => { if (!grouped[w.name]) grouped[w.name] = []; grouped[w.name].push(w); });
+  workouts.forEach(w => {
+    if (!grouped[w.name]) grouped[w.name] = [];
+    grouped[w.name].push(w);
+  });
+
   const getProgress = (entries) => {
     if (entries.length < 2) return null;
     const sorted = [...entries].sort((a, b) => a.id - b.id);
-    const first = sorted[0].weight, last = sorted[sorted.length - 1].weight;
-    return last > first ? `${first} → ${last} кг 📈` : null;
+    const first = sorted[0].weight;
+    const last = sorted[sorted.length - 1].weight;
+    if (last > first) return `${first} → ${last} кг 📈`;
+    return null;
   };
 
   const recentWorkouts = [...workouts].sort((a, b) => b.id - a.id).slice(0, 20);
@@ -1039,7 +1205,7 @@ function WorkoutScreen({ data, setData }) {
     <div className="screen">
       <div className="workout-header fade-in">
         <div className="workout-title">Тренировки 🏋️‍♀️</div>
-        <button className="btn-add" onClick={() => { setShowModal(true); haptic('light'); }}>+</button>
+        <button className="btn-add" onClick={() => { haptic('light'); setShowModal(true); }}>+</button>
       </div>
 
       {recentWorkouts.length === 0 ? (
@@ -1047,27 +1213,29 @@ function WorkoutScreen({ data, setData }) {
           <div style={{ fontSize: 40, marginBottom: 12 }}>🌿</div>
           Записывай свои тренировки<br/>и наблюдай прогресс
         </div>
-      ) : recentWorkouts.map(w => {
-        const progress = getProgress(grouped[w.name] || []);
-        return (
-          <div key={w.id} className="workout-card">
-            <div className="workout-card-header">
-              <div className="workout-name">{w.name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {progress && <div className="workout-progress-badge">{progress}</div>}
-                <button className="delete-btn" onClick={() => deleteWorkout(w.id)}>×</button>
+      ) : (
+        recentWorkouts.map(w => {
+          const progress = getProgress(grouped[w.name] || []);
+          return (
+            <div key={w.id} className="workout-card">
+              <div className="workout-card-header">
+                <div className="workout-name">{w.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {progress && <div className="workout-progress-badge">{progress}</div>}
+                  <button className="delete-btn" onClick={() => deleteWorkout(w.id)}>×</button>
+                </div>
+              </div>
+              <div className="workout-detail">
+                <span>⚖️ {w.weight} кг</span>
+                <span>🔄 {w.reps} повторений</span>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)' }}>
+                  {new Date(w.date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                </span>
               </div>
             </div>
-            <div className="workout-detail">
-              <span>⚖️ {w.weight} кг</span>
-              <span>🔄 {w.reps} повт.</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)' }}>
-                {new Date(w.date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })
+      )}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -1075,19 +1243,33 @@ function WorkoutScreen({ data, setData }) {
             <div className="modal-title">Новая запись ✨</div>
             <div className="modal-field">
               <label>Упражнение</label>
-              <input placeholder="Например: Приседания" value={exerciseName}
-                onChange={e => setExerciseName(e.target.value)} autoFocus />
+              <input
+                placeholder="Например: Приседания"
+                value={exerciseName}
+                onChange={e => setExerciseName(e.target.value)}
+                autoFocus
+              />
             </div>
             <div className="modal-row">
               <div className="modal-field">
                 <label>Вес (кг)</label>
-                <input type="number" placeholder="0" value={weight}
-                  onChange={e => setWeight(e.target.value)} inputMode="decimal" />
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={weight}
+                  onChange={e => setWeight(e.target.value)}
+                  inputMode="decimal"
+                />
               </div>
               <div className="modal-field">
                 <label>Повторения</label>
-                <input type="number" placeholder="0" value={reps}
-                  onChange={e => setReps(e.target.value)} inputMode="numeric" />
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={reps}
+                  onChange={e => setReps(e.target.value)}
+                  inputMode="numeric"
+                />
               </div>
             </div>
             <button className="btn-save" onClick={addWorkout}>Сохранить</button>
@@ -1099,37 +1281,48 @@ function WorkoutScreen({ data, setData }) {
   );
 }
 
-// ---- Profile Screen ----
+// --- Profile Screen ---
 function ProfileScreen({ data, setData }) {
   const totalXP = getTotalXP(data);
   const level = getLevel(totalXP);
   const streak = getStreak(data);
   const totalDays = Object.keys(data.days || {}).filter(k => {
-    const d = data.days[k]; return d.actions && d.actions.length > 0;
+    const d = data.days[k];
+    return d.actions && d.actions.length > 0;
   }).length;
 
   const updateName = (name) => {
-    const newData = { ...data, name }; saveData(newData); setData(newData);
+    const newData = { ...data, name };
+    saveData(newData);
+    setData(newData);
   };
 
   const history = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i);
+    const d = new Date();
+    d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
     const day = data.days?.[key];
     history.push({
       date: d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }),
-      xp: day?.xp || 0, active: day?.actions?.length > 0,
+      xp: day?.xp || 0,
+      active: day?.actions?.length > 0,
     });
   }
+
+  const tgName = tg?.initDataUnsafe?.user?.first_name || '';
 
   return (
     <div className="screen">
       <div className="profile-name-card fade-in">
         <div className="profile-avatar">{level.emoji}</div>
         <div style={{ marginBottom: 4 }}>
-          <input className="profile-name-input" placeholder="Твоё имя"
-            value={data.name || ''} onChange={e => updateName(e.target.value)} />
+          <input
+            className="profile-name-input"
+            placeholder={tgName || 'Твоё имя'}
+            value={data.name || ''}
+            onChange={e => updateName(e.target.value)}
+          />
         </div>
         <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 8 }}>
           {level.name} — {level.desc}
@@ -1137,37 +1330,93 @@ function ProfileScreen({ data, setData }) {
       </div>
 
       <div className="stats-grid fade-in">
-        <div className="stat-card"><div className="stat-value">{totalXP}</div><div className="stat-label">Всего XP</div></div>
-        <div className="stat-card"><div className="stat-value">{streak} 🔥</div><div className="stat-label">Серия</div></div>
-        <div className="stat-card"><div className="stat-value">{totalDays}</div><div className="stat-label">Дней активности</div></div>
-        <div className="stat-card"><div className="stat-value">{(data.workouts || []).length}</div><div className="stat-label">Тренировок</div></div>
+        <div className="stat-card">
+          <div className="stat-value">{totalXP}</div>
+          <div className="stat-label">Всего XP</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{streak} 🔥</div>
+          <div className="stat-label">Серия</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{totalDays}</div>
+          <div className="stat-label">Дней активности</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{(data.workouts || []).length}</div>
+          <div className="stat-label">Тренировок</div>
+        </div>
       </div>
 
       <div className="history-card fade-in">
         <div className="history-title">Последние 7 дней</div>
         {history.map((h, i) => (
           <div key={i} className="history-day">
-            <div className="history-date">{h.active ? '✅' : '⬜'} {h.date}</div>
+            <div className="history-date">
+              {h.active ? '✅' : '⬜'} {h.date}
+            </div>
             <div className="history-xp">{h.xp > 0 ? `+${h.xp} XP` : '—'}</div>
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: 20, textAlign: 'center', fontSize: 11, color: 'var(--text3)' }}>
+        {CS ? '☁️ Данные сохраняются в облаке Telegram' : '📱 Данные сохраняются на устройстве'}
       </div>
     </div>
   );
 }
 
-// ---- App ----
+// ============================================================
+// APP — loads data from cloud on start
+// ============================================================
 function App() {
-  const [data, setData] = useState(getData);
+  const [data, setData] = useState(null); // null = loading
   const [screen, setScreen] = useState('daily');
   const [floats, setFloats] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [levelUp, setLevelUp] = useState(null);
 
+  // Load data: first show local data, then merge cloud data
+  useEffect(() => {
+    const local = loadLocal();
+
+    if (CS) {
+      // Show local data immediately if available
+      if (local) setData(ensureData(local));
+
+      loadFromCloud().then(cloud => {
+        const merged = mergeData(local, cloud);
+        const final = ensureData(merged);
+        saveLocal(final);
+        setData(final);
+      });
+    } else {
+      // No Telegram CloudStorage — use only localStorage
+      setData(ensureData(local || defaultData()));
+    }
+  }, []);
+
+  // Loading screen
+  if (!data) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-emoji">🌱</div>
+        <div className="loading-text">Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {screen === 'daily' && <DailyScreen data={data} setData={setData}
-        floats={floats} setFloats={setFloats} toasts={toasts} setToasts={setToasts} setLevelUp={setLevelUp} />}
+      {screen === 'daily' && (
+        <DailyScreen
+          data={data} setData={setData}
+          floats={floats} setFloats={setFloats}
+          toasts={toasts} setToasts={setToasts}
+          setLevelUp={setLevelUp}
+        />
+      )}
       {screen === 'workout' && <WorkoutScreen data={data} setData={setData} />}
       {screen === 'profile' && <ProfileScreen data={data} setData={setData} />}
 
@@ -1176,17 +1425,17 @@ function App() {
       {levelUp && <LevelUpOverlay level={levelUp} onClose={() => setLevelUp(null)} />}
 
       <nav className="nav">
-        <button className={`nav-item ${screen === 'daily' ? 'active' : ''}`}
-          onClick={() => { setScreen('daily'); haptic('light'); }}>
-          <span className="nav-icon">🏠</span><span className="nav-label">Сегодня</span>
+        <button className={`nav-item ${screen === 'daily' ? 'active' : ''}`} onClick={() => { haptic('light'); setScreen('daily'); }}>
+          <span className="nav-icon">🏠</span>
+          <span className="nav-label">Сегодня</span>
         </button>
-        <button className={`nav-item ${screen === 'workout' ? 'active' : ''}`}
-          onClick={() => { setScreen('workout'); haptic('light'); }}>
-          <span className="nav-icon">🏋️‍♀️</span><span className="nav-label">Тренировки</span>
+        <button className={`nav-item ${screen === 'workout' ? 'active' : ''}`} onClick={() => { haptic('light'); setScreen('workout'); }}>
+          <span className="nav-icon">🏋️‍♀️</span>
+          <span className="nav-label">Тренировки</span>
         </button>
-        <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`}
-          onClick={() => { setScreen('profile'); haptic('light'); }}>
-          <span className="nav-icon">👤</span><span className="nav-label">Профиль</span>
+        <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`} onClick={() => { haptic('light'); setScreen('profile'); }}>
+          <span className="nav-icon">👤</span>
+          <span className="nav-label">Профиль</span>
         </button>
       </nav>
     </>
