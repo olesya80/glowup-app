@@ -597,6 +597,114 @@ html, body {
 .history-date { font-size: 13px; color: var(--text2); }
 .history-xp { font-size: 13px; font-weight: 600; color: var(--accent-dark); }
 
+/* Clickable stat cards */
+.stat-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.stat-card.clickable:active {
+  transform: scale(0.96);
+  box-shadow: var(--shadow2);
+}
+.stat-card.clickable::after {
+  content: '›';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 14px;
+  color: var(--text3);
+}
+
+/* Detail panel (full history) */
+.detail-panel {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 60;
+  overflow-y: auto;
+  padding: 20px 20px 40px;
+  animation: fadeIn 0.3s ease-out;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.detail-panel::-webkit-scrollbar { display: none; }
+
+.detail-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--accent-dark);
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 16px;
+}
+.detail-back:active { opacity: 0.7; }
+.detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Day detail card */
+.day-detail-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  animation: fadeIn 0.3s ease-out both;
+}
+.day-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.day-detail-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.day-detail-xp {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent2);
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+.day-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.day-detail-action {
+  font-size: 12px;
+  background: var(--bg2);
+  padding: 4px 10px;
+  border-radius: 10px;
+  color: var(--text2);
+}
+.day-detail-mood {
+  font-size: 13px;
+  color: var(--text2);
+  font-style: italic;
+  padding-top: 6px;
+  border-top: 1px solid var(--bg2);
+}
+.day-detail-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text3);
+  font-size: 13px;
+}
+
 /* Level Up Overlay */
 .level-up-overlay {
   position: fixed;
@@ -1282,7 +1390,171 @@ function WorkoutScreen({ data, setData }) {
 }
 
 // --- Profile Screen ---
+// --- ACTION NAMES for display ---
+const ACTION_NAMES = {
+  strength: '🏋️‍♀️ Силовая',
+  move: '🚶‍♀️ Движение',
+  mini: '✨ Мини-движение',
+  water: '💧 Вода',
+  joy: '💖 В удовольствие',
+};
+
+// --- Detail Panel (full history by days or workouts) ---
+function DetailPanel({ type, data, onBack }) {
+  if (type === 'days') {
+    // All days sorted newest first
+    const allDays = Object.entries(data.days || {})
+      .filter(([_, d]) => d.actions && d.actions.length > 0)
+      .sort(([a], [b]) => b.localeCompare(a));
+
+    return (
+      <div className="detail-panel">
+        <button className="detail-back" onClick={onBack}>← Назад</button>
+        <div className="detail-title">📅 История по дням</div>
+        {allDays.length === 0 ? (
+          <div className="day-detail-empty">
+            <div style={{ fontSize: 36, marginBottom: 8 }}>🌿</div>
+            Пока нет записей.<br/>Начни отмечать действия!
+          </div>
+        ) : (
+          allDays.map(([dateKey, day], i) => {
+            const d = new Date(dateKey + 'T12:00:00');
+            const dateStr = d.toLocaleDateString('ru-RU', {
+              weekday: 'long', day: 'numeric', month: 'long'
+            });
+            return (
+              <div key={dateKey} className="day-detail-card" style={{ animationDelay: `${i * 0.05}s` }}>
+                <div className="day-detail-header">
+                  <div className="day-detail-date">{dateStr}</div>
+                  <div className="day-detail-xp">+{day.xp || 0} XP</div>
+                </div>
+                <div className="day-detail-actions">
+                  {(day.actions || []).map(a => (
+                    <span key={a} className="day-detail-action">{ACTION_NAMES[a] || a}</span>
+                  ))}
+                </div>
+                {(day.mood || day.quest || day.reflection) && (
+                  <div className="day-detail-mood">
+                    {day.quest && <div>🌅 Квест: {day.quest}</div>}
+                    {day.mood && <div>💭 Настроение: {day.mood}</div>}
+                    {day.reflection && <div>🌙 Вечер: {day.reflection}</div>}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    );
+  }
+
+  if (type === 'workouts') {
+    const workouts = [...(data.workouts || [])].sort((a, b) => b.id - a.id);
+    // Group by exercise
+    const grouped = {};
+    (data.workouts || []).forEach(w => {
+      if (!grouped[w.name]) grouped[w.name] = [];
+      grouped[w.name].push(w);
+    });
+
+    return (
+      <div className="detail-panel">
+        <button className="detail-back" onClick={onBack}>← Назад</button>
+        <div className="detail-title">🏋️‍♀️ Все тренировки</div>
+        {workouts.length === 0 ? (
+          <div className="day-detail-empty">
+            <div style={{ fontSize: 36, marginBottom: 8 }}>🌿</div>
+            Пока нет тренировок.<br/>Запиши первую!
+          </div>
+        ) : (
+          <>
+            {/* Progress summary per exercise */}
+            {Object.entries(grouped).map(([name, entries]) => {
+              const sorted = [...entries].sort((a, b) => a.id - b.id);
+              const first = sorted[0];
+              const last = sorted[sorted.length - 1];
+              const improved = last.weight > first.weight;
+              return (
+                <div key={name} className="day-detail-card" style={{ marginBottom: 6 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text2)' }}>
+                    {entries.length} записей
+                    {improved && (
+                      <span style={{ marginLeft: 8, color: 'var(--accent-dark)', fontWeight: 600 }}>
+                        {first.weight} → {last.weight} кг 📈
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div style={{ fontSize: 13, color: 'var(--text3)', margin: '16px 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Все записи
+            </div>
+            {workouts.map((w, i) => (
+              <div key={w.id} className="day-detail-card" style={{ animationDelay: `${i * 0.03}s` }}>
+                <div className="day-detail-header">
+                  <div className="day-detail-date">{w.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                    {new Date(w.date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text2)', display: 'flex', gap: 16 }}>
+                  <span>⚖️ {w.weight} кг</span>
+                  <span>🔄 {w.reps} повт.</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (type === 'streak') {
+    // Show streak calendar — last 30 days
+    const days = [];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const day = data.days?.[key];
+      days.push({
+        date: d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }),
+        active: day?.actions?.length > 0,
+        xp: day?.xp || 0,
+      });
+    }
+
+    return (
+      <div className="detail-panel">
+        <button className="detail-back" onClick={onBack}>← Назад</button>
+        <div className="detail-title">🔥 Серия и активность</div>
+        <div className="day-detail-card" style={{ marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 36, fontWeight: 700 }}>{getStreak(data)} 🔥</div>
+          <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 4 }}>дней подряд</div>
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text3)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>
+          Последние 30 дней
+        </div>
+        {days.map((d, i) => (
+          <div key={i} className="history-day" style={{ padding: '10px 0' }}>
+            <div className="history-date">
+              {d.active ? '✅' : '⬜'} {d.date}
+            </div>
+            <div className="history-xp">{d.xp > 0 ? `+${d.xp} XP` : '—'}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function ProfileScreen({ data, setData }) {
+  const [detailView, setDetailView] = useState(null); // 'days' | 'workouts' | 'streak' | null
   const totalXP = getTotalXP(data);
   const level = getLevel(totalXP);
   const streak = getStreak(data);
@@ -1312,6 +1584,19 @@ function ProfileScreen({ data, setData }) {
 
   const tgName = tg?.initDataUnsafe?.user?.first_name || '';
 
+  // If a detail view is open, show it
+  if (detailView) {
+    return (
+      <div className="screen" style={{ padding: 0 }}>
+        <DetailPanel
+          type={detailView}
+          data={data}
+          onBack={() => { haptic('light'); setDetailView(null); }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="screen">
       <div className="profile-name-card fade-in">
@@ -1330,19 +1615,19 @@ function ProfileScreen({ data, setData }) {
       </div>
 
       <div className="stats-grid fade-in">
-        <div className="stat-card">
+        <div className="stat-card clickable" onClick={() => { haptic('light'); setDetailView('days'); }}>
           <div className="stat-value">{totalXP}</div>
           <div className="stat-label">Всего XP</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card clickable" onClick={() => { haptic('light'); setDetailView('streak'); }}>
           <div className="stat-value">{streak} 🔥</div>
           <div className="stat-label">Серия</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card clickable" onClick={() => { haptic('light'); setDetailView('days'); }}>
           <div className="stat-value">{totalDays}</div>
           <div className="stat-label">Дней активности</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card clickable" onClick={() => { haptic('light'); setDetailView('workouts'); }}>
           <div className="stat-value">{(data.workouts || []).length}</div>
           <div className="stat-label">Тренировок</div>
         </div>
@@ -1358,6 +1643,18 @@ function ProfileScreen({ data, setData }) {
             <div className="history-xp">{h.xp > 0 ? `+${h.xp} XP` : '—'}</div>
           </div>
         ))}
+        <div style={{ textAlign: 'center', marginTop: 10 }}>
+          <button
+            onClick={() => { haptic('light'); setDetailView('days'); }}
+            style={{
+              background: 'none', border: 'none', fontFamily: 'inherit',
+              fontSize: 13, color: 'var(--accent-dark)', cursor: 'pointer',
+              padding: '8px 16px',
+            }}
+          >
+            Показать всю историю →
+          </button>
+        </div>
       </div>
 
       <div style={{ marginTop: 20, textAlign: 'center', fontSize: 11, color: 'var(--text3)' }}>
